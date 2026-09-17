@@ -1,12 +1,14 @@
-# wahoomepsCreator requirements (based on conda-env/gdal-user.yml)
-wahoomc==4.4.0
+# wahooMapsCreator requirements (based on conda-env/gdal-user.yml)
+# wahoomc itself is installed from source (pip install .), not from PyPI
+beautifulsoup4>=4.11,<5
 geojson>=2.5,<3
-bs4>=4.11,<4.2
-lxml>=4.9,<5.0
-matplotlib>=3.4.3,<3.5
+lxml>=6.0,<7  # lxml 6.x ships cp314 wheels (core26 = Python 3.14)
+matplotlib>=3.10,<3.11  # >=3.10.5 ships cp314 wheels (core26 = Python 3.14)
 packaging>=21.0
-pip  # For pip itself
 
-# Optional: uncomment if you want to include OSM-tools for contour lines on macOS/Linux
-# osmium-tool>=1.16
-# osmosis>=1.0
+# GDAL python bindings: must be <= the installed system GDAL version
+# (core26 / Ubuntu 26.04 ships GDAL 3.12.2; for the snap, use GDAL==3.12.2)
+GDAL>=3.6,<3.13
+
+# Optional: OSM tools for contour lines are system packages, not pip:
+#   osmium-tool, osmosis
