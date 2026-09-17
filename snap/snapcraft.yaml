@@ -16,58 +16,65 @@ grade: stable
 
 # ---- Parts ---------------------------------------------------------------
 
-wahoomc:
-  plugin: python
-  source: .
-  # Install the local project (pip install .) plus its runtime deps.
-  # wahoomc==4.4.0 is the local package itself, so it is installed from
-  # source here rather than from PyPI.
-  # GDAL: the PyPI package is sdist-only (no manylinux wheels), so pip
-  # compiles the C extension against the system GDAL via gdal-config.
-  # The osgeo bindings must match the C library major.minor; core26
-  # (noble) ships GDAL 3.8.x, hence the <3.9 cap.
-  pip-install:
-    - .
-    - "GeoJSON>=2.5,<3"
-    - "beautifulsoup4>=4.11,<4.2"
-    - "lxml>=4.9,<5.0"
-    - "matplotlib>=3.4.3,<3.5"
-    - "packaging"
-    - "GDAL>=3.6,<3.9"
-  build-packages:
-    # Python dev tooling (needed for pip installs that compile)
-    - python3-dev
-    - python3-venv
-    - python3-pip
-    - python3-tk
-    # GDAL C library + headers so the GDAL Python binding can build/link
-    - gdal-bin
-    - libgdal-dev
-    - libgeos-dev
-    - libproj-dev
-    # Build tooling for native wheels (lxml etc.)
-    - build-essential
-    - pkg-config
-  build-attributes:
-    - enable-pip
-    - enable-parallel-install
-  # Runtime libraries the strict snap must carry inside itself
-  stage-packages:
-    - tk
-    - tcl
-    - libgdal34t64
-    - libgeos-c1t64
-    - libproj25
-    - libgl1
-    - libglib2.0-0t64
-    - fonts-dejavu-core
+parts:
+  wahoomc:
+    plugin: python
+    source: .
+    # The python plugin auto-installs the local project (pip install .)
+    # because pyproject.toml is present; wahoomc==4.4.0 is this local
+    # package itself.
+    # GDAL: the PyPI package is sdist-only (no manylinux wheels), so pip
+    # compiles the C extension against the system GDAL via gdal-config.
+    # The bindings demand libgdal of at least their own version, so pin
+    # exactly what core26 (Ubuntu 26.04) ships: GDAL 3.12.2.
+    python-packages:
+      - "GeoJSON>=2.5,<3"
+      - "beautifulsoup4>=4.11,<5"
+      # lxml 6.x is the first series with cp314 wheels
+      - "lxml>=6.0,<7"
+      # >=3.10.5 is the first series with cp314 wheels (core26 ships
+      # Python 3.14); older sdist builds fail on modern setuptools
+      - "matplotlib>=3.10,<3.11"
+      - "packaging"
+      - "GDAL==3.12.2"
+    build-packages:
+      # Python dev tooling (needed for pip installs that compile)
+      - python3-dev
+      - python3-venv
+      - python3-pip
+      # GDAL C library + headers so the GDAL Python binding can build/link
+      - gdal-bin
+      - libgdal-dev
+      - libgeos-dev
+      - libproj-dev
+      # Build tooling (the GDAL binding is compiled from sdist)
+      - build-essential
+      - pkg-config
+    # Runtime pieces the strict snap must carry inside itself.
+    # core26 ships the Python 3.14 stdlib but NOT the interpreter binary
+    # or tkinter, so both are staged from resolute packages (chosen so
+    # they do not overlap the base's stdlib files).
+    stage-packages:
+      - python3.14
+      - python3.14-tk        # tkinter package + _tkinter.so
+      - python3-venv
+      - libtcl8.6
+      - libtk8.6
+      - libgdal38
+      - libgeos-c1t64
+      - libproj25
+      - libgl1
+      - libglib2.0-0t64
+      - fonts-dejavu-core
 
 # ---- Apps ----------------------------------------------------------------
 
 apps:
   wahoomc:
-    # core26 python plugin patches /usr/bin/python3 to use the snap venv
-    command: /usr/bin/python3 -m wahoomc cli --
+    # Invoke the part's venv interpreter (bin/python3 ->
+    # ../usr/bin/python3.14 staged above) so the venv's site-packages
+    # and the core26 base's stdlib are used together.
+    command: bin/python3 -m wahoomc cli --
     plugs:
       - network
       - home
@@ -76,7 +83,7 @@ apps:
       - opengl
 
   wahoomc-gui:
-    command: /usr/bin/python3 -m wahoomc gui
+    command: bin/python3 -m wahoomc gui
     plugs:
       - network
       - home
