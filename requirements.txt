@@ -1,0 +1,12 @@
+# wahoomepsCreator requirements (based on conda-env/gdal-user.yml)
+wahoomc==4.4.0
+geojson>=2.5,<3
+bs4>=4.11,<4.2
+lxml>=4.9,<5.0
+matplotlib>=3.4.3,<3.5
+packaging>=21.0
+pip  # For pip itself
+
+# Optional: uncomment if you want to include OSM-tools for contour lines on macOS/Linux
+# osmium-tool>=1.16
+# osmosis>=1.0

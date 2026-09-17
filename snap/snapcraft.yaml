@@ -1,0 +1,84 @@
+name: wahoomc
+version: 4.4.0
+summary: Create up-to-date maps for your Wahoo device based on latest OSM data
+description: |
+  Downloads OpenStreetMap data, processes it (optionally with GDAL contour
+  lines), and writes .map files for Wahoo BOLT / ROAM / ELEMNT GPS computers.
+  Ships a CLI and a GUI (tkinter/matplotlib).
+license: MIT
+contact: https://github.com/treee111/wahooMapsCreator
+issues: https://github.com/treee111/wahooMapsCreator/issues
+source-code: https://github.com/treee111/wahooMapsCreator
+
+base: core26
+confinement: strict
+grade: stable
+
+# ---- Parts ---------------------------------------------------------------
+
+wahoomc:
+  plugin: python
+  source: .
+  # Install the local project (pip install .) plus its runtime deps.
+  # wahoomc==4.4.0 is the local package itself, so it is installed from
+  # source here rather than from PyPI.
+  pip-install:
+    - .
+    - "GeoJSON>=2.5,<3"
+    - "beautifulsoup4>=4.11,<4.2"
+    - "lxml>=4.9,<5.0"
+    - "matplotlib>=3.4.3,<3.5"
+    - "packaging"
+    - "GDAL>=3.6"
+  build-packages:
+    # Python dev tooling (needed for pip installs that compile)
+    - python3-dev
+    - python3-venv
+    - python3-pip
+    - python3-tk
+    # GDAL C library + headers so the GDAL Python binding can build/link
+    - gdal-bin
+    - libgdal-dev
+    - libgeos-dev
+    - libproj-dev
+    # Build tooling for native wheels (lxml etc.)
+    - build-essential
+    - pkg-config
+  build-attributes:
+    - enable-pip
+    - enable-parallel-install
+  # Runtime libraries the strict snap must carry inside itself
+  stage-packages:
+    - tk
+    - tcl
+    - libgdal34
+    - libgeos-c1v5
+    - libproj25
+    - libgl1
+    - libglib2.0-0t64
+    - fonts-dejavu-core
+
+# ---- Apps ----------------------------------------------------------------
+
+apps:
+  wahoomc:
+    # core26 python plugin patches /usr/bin/python3 to use the snap venv
+    command: /usr/bin/python3 -m wahoomc cli --
+    plugs:
+      - network
+      - home
+      - removable-media
+      - desktop-removable-media
+      - opengl
+
+  wahoomc-gui:
+    command: /usr/bin/python3 -m wahoomc gui
+    plugs:
+      - network
+      - home
+      - removable-media
+      - desktop-removable-media
+      - opengl
+      - wayland
+      - x11
+      - browser-support
