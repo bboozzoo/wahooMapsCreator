@@ -22,6 +22,10 @@ wahoomc:
   # Install the local project (pip install .) plus its runtime deps.
   # wahoomc==4.4.0 is the local package itself, so it is installed from
   # source here rather than from PyPI.
+  # GDAL: the PyPI package is sdist-only (no manylinux wheels), so pip
+  # compiles the C extension against the system GDAL via gdal-config.
+  # The osgeo bindings must match the C library major.minor; core26
+  # (noble) ships GDAL 3.8.x, hence the <3.9 cap.
   pip-install:
     - .
     - "GeoJSON>=2.5,<3"
@@ -29,7 +33,7 @@ wahoomc:
     - "lxml>=4.9,<5.0"
     - "matplotlib>=3.4.3,<3.5"
     - "packaging"
-    - "GDAL>=3.6"
+    - "GDAL>=3.6,<3.9"
   build-packages:
     # Python dev tooling (needed for pip installs that compile)
     - python3-dev
@@ -51,8 +55,8 @@ wahoomc:
   stage-packages:
     - tk
     - tcl
-    - libgdal34
-    - libgeos-c1v5
+    - libgdal34t64
+    - libgeos-c1t64
     - libproj25
     - libgl1
     - libglib2.0-0t64
