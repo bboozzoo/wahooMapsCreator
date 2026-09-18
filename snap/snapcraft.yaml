@@ -45,6 +45,8 @@ parts:
       - python3.14
       - python3.14-tk
       - python3-venv
+      - openjdk-26-jre
+      - openjdk-26-jre-headless
 
 # ---- Apps ----------------------------------------------------------------
 
