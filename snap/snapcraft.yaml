@@ -27,6 +27,8 @@ layout:
     bind: $SNAP/usr/share/java
   /etc/osmosis:
     bind: $SNAP/etc/osmosis
+  /usr/share/tcltk:
+    bind: $SNAP/usr/share/tcltk
 
 # ---- Parts ---------------------------------------------------------------
 
