@@ -147,8 +147,21 @@ def download_tooling():
 
     # Non-Windows
     else:
-        mapwriter_plugin_path = os.path.join(
-            str(USER_DIR), '.openstreetmap', 'osmosis', 'plugins', map_writer_filename)
+        # Check multiple locations for the mapwriter plugin
+        # First check system-wide location bundled in snap, then user location
+        mapwriter_plugin_paths = [
+            '/usr/share/osmosis/' + map_writer_filename,
+            os.path.join(str(USER_DIR), '.openstreetmap', 'osmosis', 'plugins', map_writer_filename)
+        ]
+        # Find existing plugin
+        mapwriter_plugin_path = None
+        for path in mapwriter_plugin_paths:
+            if os.path.isfile(path):
+                mapwriter_plugin_path = path
+                break
+        # If not found, use user path for download
+        if mapwriter_plugin_path is None:
+            mapwriter_plugin_path = mapwriter_plugin_paths[1]
 
     if not os.path.isfile(mapwriter_plugin_path):
         log.info('# Need to download Osmosis mapwriter plugin')
