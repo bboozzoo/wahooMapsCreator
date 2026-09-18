@@ -4,7 +4,7 @@ version: 4.4.0
 summary: Create up-to-date maps for your Wahoo device based on latest OSM data
 website: https://github.com/treee111/wahooMapsCreator
 environment:
-  PATH: $PATH:/snap/wahoomc/current/usr/lib/jvm/java-26-openjdk-amd64/bin
+  PATH: $PATH:$SNAP/usr/lib/jvm/java-26-openjdk-amd64/bin:$SNAP/usr/bin
 description: |
   Downloads OpenStreetMap data, processes it (optionally with GDAL contour
   lines), and writes .map files for Wahoo BOLT / ROAM / ELEMNT GPS computers.
@@ -49,6 +49,7 @@ parts:
       - python3-venv
       - openjdk-26-jre
       - openjdk-26-jre-headless
+      - osmium-tool
 
 # ---- Apps ----------------------------------------------------------------
 
