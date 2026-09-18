@@ -18,6 +18,15 @@ base: core26
 confinement: strict
 grade: stable
 
+# Osmosis uses hardcoded /usr/share/osmosis and /usr/share/java paths
+layout:
+  /usr/share/osmosis:
+    bind: $SNAP/usr/share/osmosis
+  /usr/share/java:
+    bind: $SNAP/usr/share/java
+  /etc/osmosis:
+    bind: $SNAP/etc/osmosis
+
 # ---- Parts ---------------------------------------------------------------
 
 parts:
@@ -50,6 +59,7 @@ parts:
       - openjdk-26-jre
       - openjdk-26-jre-headless
       - osmium-tool
+      - osmosis
 
 # ---- Apps ----------------------------------------------------------------
 
