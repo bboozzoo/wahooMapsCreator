@@ -4,7 +4,8 @@ version: 4.4.0
 summary: Create up-to-date maps for your Wahoo device based on latest OSM data
 website: https://github.com/treee111/wahooMapsCreator
 environment:
-  PATH: $PATH:$SNAP/usr/lib/jvm/java-26-openjdk-amd64/bin:$SNAP/usr/bin
+  PATH: $PATH:$SNAP/usr/lib/jvm/java-26-openjdk-amd64/bin:$SNAP/usr/bin:$SNAP/bin
+  LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu:$SNAP/usr/lib:$SNAP/usr/lib/x86_64-linux-gnu/blas:$SNAP/usr/lib/x86_64-linux-gnu/lapack
 description: |
   Downloads OpenStreetMap data, processes it (optionally with GDAL contour
   lines), and writes .map files for Wahoo BOLT / ROAM / ELEMNT GPS computers.
@@ -33,6 +34,17 @@ parts:
   wahoomc:
     plugin: python
     source: .
+    override-build: |
+      craftctl default
+      # Download mapsforge map-writer plugin for Osmosis
+      mkdir -p ${SNAPCRAFT_PART_INSTALL}/usr/share/osmosis
+      curl -L -o ${SNAPCRAFT_PART_INSTALL}/usr/share/osmosis/mapsforge-map-writer-0.21.0-jar-with-dependencies.jar \
+        https://search.maven.org/remotecontent?filepath=org/mapsforge/mapsforge-map-writer/0.21.0/mapsforge-map-writer-0.21.0-jar-with-dependencies.jar
+    override-prime: |
+      craftctl default
+      # Create lzma symlink to xz for compatibility
+      mkdir -p ${SNAPCRAFT_PRIME}/usr/bin
+      ln -sf xz ${SNAPCRAFT_PRIME}/usr/bin/lzma
     python-packages:
       - "geojson"
       - "GDAL==3.12.2"
@@ -60,12 +72,17 @@ parts:
       - openjdk-26-jre-headless
       - osmium-tool
       - osmosis
+      - gdal-bin
+      - libarmadillo15
+      - libblas3
+      - liblapack3
+      - xz-utils
 
 # ---- Apps ----------------------------------------------------------------
 
 apps:
   wahoomc:
-    command: bin/python -m wahoomc cli --
+    command: bin/python -m wahoomc
     plugs:
       - network
       - home
