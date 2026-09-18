@@ -141,17 +141,22 @@ def is_map_writer_plugin_installed():
     mapsforge-map-writer-master-20210527.154736-408-jar-with-dependencies.jar
     downloaded on 01.10.2022: mapsforge-map-writer-0.18.0-jar-with-dependencies.jar
     """
-    map_writer_path = os.path.join(
-        str(Path.home()), '.openstreetmap', 'osmosis', 'plugins')
+    # Check multiple locations for the mapwriter plugin
+    # First check system-wide location bundled in snap, then user location
+    plugin_paths = [
+        '/usr/share/osmosis',
+        os.path.join(str(Path.home()), '.openstreetmap', 'osmosis', 'plugins')
+    ]
 
-    # test if the file is there
-    try:
-        for file in os.listdir(map_writer_path):
-            if "mapsforge-map-writer" in file:
-                return True
-    # if there is no file in the plugins directory
-    except FileNotFoundError:
-        pass
+    for plugin_path in plugin_paths:
+        # test if the file is there
+        try:
+            for file in os.listdir(plugin_path):
+                if "mapsforge-map-writer" in file:
+                    return True
+        # if there is no file in the plugins directory
+        except FileNotFoundError:
+            pass
 
     return False
 
