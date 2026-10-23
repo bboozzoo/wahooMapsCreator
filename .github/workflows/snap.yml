@@ -1,0 +1,40 @@
+name: Build snap
+
+on:
+  push:
+    branches:
+    - develop
+  pull_request:
+
+jobs:
+  snap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Pack snap
+        uses: canonical/craft-actions/snapcraft/pack@v1
+        id: pack
+
+      - name: Install snap
+        run: |
+          sudo snap install --dangerous "${{ steps.pack.outputs.snaps }}"
+          sudo snap connections wahoomc
+
+      - name: Smoke test
+        run: |
+          set -eu
+          # --help must not download anything
+          snap run wahoomc.wahoomc --help
+          snap run wahoomc.wahoomc cli --help
+          # the mapwriter plugin drives map creation; it must be where
+          # osmosis loads it from
+          snap run --shell wahoomc.wahoomc -c \
+            'test -f /usr/share/osmosis/mapsforge-map-writer-*.jar'
+          snap run --shell wahoomc.wahoomc -c 'command -v java osmosis osmium zip lzma'
+          snap run --shell wahoomc.wahoomc -c \
+            '$SNAP/bin/python -c "import tkinter, geojson, shapely, requests; from osgeo import ogr"'
+
+      - name: Remove snap
+        if: always()
+        run: sudo snap remove wahoomc
