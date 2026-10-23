@@ -120,6 +120,10 @@ apps:
       - network
       - home
       - removable-media
+      - desktop
+      - opengl
+      - wayland
+      - x11
 
   wahoomc-gui:
     command: bin/python -m wahoomc gui
@@ -133,3 +137,4 @@ apps:
       - opengl
       - wayland
       - x11
+      - desktop
