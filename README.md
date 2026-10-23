@@ -40,6 +40,27 @@ python -m wahoomc gui
 
 3. [:floppy_disk: Copy the map-files to your device after generation](docs/COPY_TO_WAHOO.md#copy-maps-files-to-wahoo-device-)
 
+## Snap package (Ubuntu)
+The snap is not published to the Snap Store yet. Build and install it locally:
+```
+snapcraft pack
+sudo snap install --dangerous ./wahoomc_4.4.0_amd64.snap
+```
+
+The Python environment, GDAL, Osmosis with the mapsforge map-writer plugin and a JRE are bundled, so nothing else needs to be installed. Use the upstream commands:
+```
+wahoomc.wahoomc cli -co malta
+wahoomc.wahoomc gui
+```
+Maps are written to `~/wahooMapsCreatorData`, as with the other installation methods.
+
+To write maps to a mounted SD card or USB stick, connect the interface manually:
+```
+sudo snap connect wahoomc:removable-media
+```
+
+Contour lines (`--contour`) are not available in the snap, because `phyghtmap` is not packaged. All other options work.
+
 ## To further adjust...
 * [:cookie: Get POIs displayed on your Wahoo](docs/USAGE.md#pois---points-of-interest)
 
