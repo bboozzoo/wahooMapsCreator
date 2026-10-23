@@ -1,5 +1,7 @@
 # Quickstart Guide for Anaconda on Windows and macOS <!-- omit in toc -->
 
+> On Ubuntu, use the [snap package](../README.md#snap-package-ubuntu) instead of the Anaconda environment.
+
 #### Table of contents <!-- omit in toc -->
 - [Download and Install required programs](#download-and-install-required-programs)
   - [Anaconda](#anaconda)
