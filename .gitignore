@@ -26,3 +26,19 @@ osmfilter_tempfile.*
 
 #windows
 /wahoomc/tooling_win/osmconvert_tempfile.*
+
+# snap build artefacts
+*.snap
+*.snap.xdelta*
+/parts/
+/stage/
+/prime/
+/snap/.snapcraft/
+/snapcraft/
+
+# stray package downloads
+*.deb
+
+# local task scratch
+/.taskman/
+/PLAN.md
