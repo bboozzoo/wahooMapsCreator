@@ -1,0 +1,39 @@
+name: Build snap
+
+on:
+  push:
+    branches:
+    - develop
+  pull_request:
+
+jobs:
+  snap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up LXD
+        uses: canonical/setup-lxd@main
+
+      - name: Build snap
+        uses: snapcore/action-build@v1
+        id: build
+
+      - name: Install snap
+        run: |
+          sudo snap install --dangerous "${{ steps.build.outputs.snap }}"
+          sudo snap connections wahoomc
+
+      - name: Smoke test
+        run: |
+          set -eu
+          # --help must not download anything
+          snap run wahoomc.wahoomc --help
+          snap run wahoomc.wahoomc cli --help
+          snap run --shell wahoomc.wahoomc -c 'command -v java osmosis osmium zip lzma'
+          snap run --shell wahoomc.wahoomc -c \
+            '$SNAP/bin/python -c "import tkinter, geojson, shapely, requests; from osgeo import ogr"'
+
+      - name: Remove snap
+        if: always()
+        run: sudo snap remove wahoomc
