@@ -27,7 +27,8 @@ def process_call_of_the_tool():
 
     subparsers = parser_top.add_subparsers(title='Choose mode',
                                            description='choose the mode of using wahooMapsCreator. Either GUI or CLI.',
-                                           help='sub-command help', dest='subparser_name')
+                                           help='sub-command help', dest='subparser_name',
+                                           metavar='{gui,cli}', required=True)
 
     # create the parser for the "gui" command
     parser_gui = subparsers.add_parser(  # pylint: disable=unused-variable
