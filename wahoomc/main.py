@@ -5,6 +5,7 @@ executable file to create up-to-date map-files for the Wahoo ELEMNT and Wahoo EL
 
 # import official python packages
 import logging
+import sys
 
 # import custom python packages
 from wahoomc.input import process_call_of_the_tool, cli_init
@@ -31,6 +32,16 @@ def run(run_level):
     # create logger
     logging.basicConfig(format='%(levelname)s:%(message)s',
                         level=logging.INFO)
+
+    # parse and exit early for --help or a missing sub-command, so that no
+    # download happens and no user directory is created before argparse
+    # prints help or a usage error
+    arguments = sys.argv[1:]
+    if not arguments or any(argument in ('-h', '--help') for argument in arguments):
+        if run_level == 'init':
+            cli_init()
+        else:
+            process_call_of_the_tool()
 
     # initializing work directories needs to be the first call,
     # because other setup stuff relies on that (breaking changes)

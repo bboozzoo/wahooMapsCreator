@@ -2,6 +2,9 @@
 tests for the python file
 """
 import os
+import subprocess
+import sys
+import tempfile
 import unittest
 
 # import custom python packages
@@ -38,6 +41,21 @@ class TestCli(unittest.TestCase):
         result = os.system("python -m wahoomc gui -h")
 
         self.assertEqual(result, 0)
+
+    def test_setup_skipped_before_argparse_exits(self):
+        """
+        --help and a missing sub-command exit before any user directory
+        is created or anything is downloaded
+        """
+        for arguments, expected_returncode in ((['-h'], 0), ([], 2)):
+            with tempfile.TemporaryDirectory() as home_dir:
+                result = subprocess.run(
+                    [sys.executable, '-m', 'wahoomc'] + arguments,
+                    env=dict(os.environ, HOME=home_dir), capture_output=True,
+                    check=False)
+
+                self.assertEqual(expected_returncode, result.returncode)
+                self.assertEqual([], os.listdir(home_dir))
 
 
 if __name__ == '__main__':
