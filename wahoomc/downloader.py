@@ -16,6 +16,7 @@ import requests
 
 # import custom python packages
 from wahoomc.constants_functions import get_tooling_win_path
+from wahoomc.constants_functions import get_map_writer_plugin_path
 from wahoomc.geofabrik_json import GeofabrikJson
 from wahoomc.timings import Timings
 
@@ -26,6 +27,8 @@ from wahoomc.constants import GEOFABRIK_PATH
 from wahoomc.constants import OSMOSIS_WIN_FILE_PATH
 from wahoomc.constants import USER_TOOLING_WIN_DIR
 from wahoomc.constants import USER_DIR
+from wahoomc.constants import MAP_WRITER_PLUGIN_FILENAME
+from wahoomc.constants import MAP_WRITER_PLUGIN_URL
 
 log = logging.getLogger('main-logger')
 
@@ -119,9 +122,6 @@ def download_tooling():
 
     check here for new mapwriter plugin version: https://github.com/mapsforge/mapsforge
     """
-    map_writer_filename = 'mapsforge-map-writer-0.21.0-jar-with-dependencies.jar'
-    mapwriter_plugin_url = 'https://search.maven.org/remotecontent?filepath=org/mapsforge/mapsforge-map-writer/0.21.0/' + map_writer_filename
-
     # Windows
     if platform.system() == "Windows":
         os.makedirs(USER_TOOLING_WIN_DIR, exist_ok=True)
@@ -143,18 +143,22 @@ def download_tooling():
         # until v0.48.3, the location c:\Users\<username>\wahooMapsCreatorData\Osmosis\lib\default worked
         # since v0.49.0, the location c:\Users\<username>\AppData\Roaming\Openstreetmap\Osmosis\Plugins\ works
         mapwriter_plugin_path = os.path.join(
-            str(USER_DIR), 'AppData', 'Roaming', 'Openstreetmap', 'Osmosis', 'Plugins', map_writer_filename)
+            str(USER_DIR), 'AppData', 'Roaming', 'Openstreetmap', 'Osmosis', 'Plugins',
+            MAP_WRITER_PLUGIN_FILENAME)
 
     # Non-Windows
     else:
-        mapwriter_plugin_path = os.path.join(
-            str(USER_DIR), '.openstreetmap', 'osmosis', 'plugins', map_writer_filename)
+        mapwriter_plugin_path = get_map_writer_plugin_path()
 
     if not os.path.isfile(mapwriter_plugin_path):
         log.info('# Need to download Osmosis mapwriter plugin')
         # create plugins directory
-        os.makedirs(os.path.dirname(mapwriter_plugin_path), exist_ok=True)
-        download_file(mapwriter_plugin_path, mapwriter_plugin_url)
+        try:
+            os.makedirs(os.path.dirname(mapwriter_plugin_path), exist_ok=True)
+        except OSError as error:
+            sys.exit(
+                f'! Cannot create directory for the Osmosis mapwriter plugin: {error}')
+        download_file(mapwriter_plugin_path, MAP_WRITER_PLUGIN_URL)
 
     # download geofabrik json as this will be needed always
     # because of the .json file replacement by geofabrik

@@ -4,13 +4,15 @@ tests for setup functions
 import unittest
 import platform
 import os
+import tempfile
+import mock
 from packaging.version import parse as parse_version
 
 # import custom python packages
 from wahoomc.setup_functions import is_program_installed, is_map_writer_plugin_installed, \
     read_version_last_run
 from wahoomc.constants_functions import get_tooling_win_path
-from wahoomc.constants import USER_WAHOO_MC, VERSION
+from wahoomc.constants import USER_WAHOO_MC, VERSION, MAP_WRITER_PLUGIN_FILENAME
 from wahoomc.file_directory_functions import write_json_file_generic
 from wahoomc.downloader import get_latest_pypi_version
 
@@ -55,6 +57,30 @@ class TestSetup(unittest.TestCase):
         result = is_program_installed(program)
 
         self.assertTrue(result)
+
+    def test_map_writer_plugin_installed(self):
+        """
+        tests, if the mapwriter plugin is found in the searched directories only
+        """
+        with tempfile.TemporaryDirectory() as plugin_dir:
+            with mock.patch("wahoomc.setup_functions.get_map_writer_plugin_dirs",
+                            return_value=[plugin_dir]):
+                self.assertFalse(is_map_writer_plugin_installed())
+
+            with open(os.path.join(plugin_dir, MAP_WRITER_PLUGIN_FILENAME), 'w',
+                      encoding='utf-8'):
+                pass
+            with mock.patch("wahoomc.setup_functions.get_map_writer_plugin_dirs",
+                            return_value=[plugin_dir]):
+                self.assertTrue(is_map_writer_plugin_installed())
+
+    def test_map_writer_plugin_installed_missing_dir(self):
+        """
+        tests, if a non-existing plugin directory is skipped
+        """
+        with mock.patch("wahoomc.setup_functions.get_map_writer_plugin_dirs",
+                        return_value=['/nonexistent/osmosis']):
+            self.assertFalse(is_map_writer_plugin_installed())
 
 
 class TestConfigFile(unittest.TestCase):

@@ -2,12 +2,13 @@
 tests for the downloader file
 """
 import os
-# import sys
 import posixpath
+import tempfile
 import unittest
 import time
 import shutil
 import platform
+import mock
 
 # import custom python packages
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -185,17 +186,15 @@ class TestDownloader(unittest.TestCase):
         Test if macOS tooling files download is successful
         """
         if platform.system() != "Windows":
-            path = os.path.join(str(constants.USER_DIR), '.openstreetmap', 'osmosis',
-                                'plugins', 'mapsforge-map-writer-0.21.0-jar-with-dependencies.jar')
+            with tempfile.TemporaryDirectory() as plugin_dir:
+                path = os.path.join(
+                    plugin_dir, constants.MAP_WRITER_PLUGIN_FILENAME)
 
-            if os.path.exists(path):
-                os.remove(path)
+                with mock.patch("wahoomc.downloader.get_map_writer_plugin_path",
+                                return_value=path):
+                    download_tooling()
 
-            self.assertFalse(os.path.exists(path))
-
-            download_tooling()
-
-            self.assertTrue(os.path.exists(path))
+                self.assertTrue(os.path.exists(path))
 
     def test_map_writer_url_calculation(self):
         """

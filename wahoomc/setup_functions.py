@@ -8,14 +8,14 @@ import os
 import logging
 import platform
 import shutil
-from pathlib import Path
 import sys
 from packaging.version import parse as parse_version
 
 # import custom python packages
 from wahoomc.file_directory_functions import delete_everything_in_folder, write_json_file_generic, \
     read_json_file_generic, copy_or_move_files_and_folder
-from wahoomc.constants_functions import get_tooling_win_path, get_absolute_dir_user_or_repo
+from wahoomc.constants_functions import get_tooling_win_path, get_absolute_dir_user_or_repo, \
+    get_map_writer_plugin_dirs
 from wahoomc.downloader import get_latest_pypi_version
 
 from wahoomc.constants import GEOFABRIK_PATH, USER_TOOLING_WIN_DIR, USER_WAHOO_MC
@@ -135,23 +135,20 @@ def is_program_installed(program):
 
 def is_map_writer_plugin_installed():
     """
-    tests, if the mapwriter plugin is in the correct location
+    tests, if the mapwriter plugin is in one of the searched locations
 
     Example filename for the map-writer-plugin
     mapsforge-map-writer-master-20210527.154736-408-jar-with-dependencies.jar
     downloaded on 01.10.2022: mapsforge-map-writer-0.18.0-jar-with-dependencies.jar
     """
-    map_writer_path = os.path.join(
-        str(Path.home()), '.openstreetmap', 'osmosis', 'plugins')
-
-    # test if the file is there
-    try:
-        for file in os.listdir(map_writer_path):
-            if "mapsforge-map-writer" in file:
+    for plugin_dir in get_map_writer_plugin_dirs():
+        try:
+            # any version of the plugin satisfies the requirement
+            if any('mapsforge-map-writer' in file for file in os.listdir(plugin_dir)):
                 return True
-    # if there is no file in the plugins directory
-    except FileNotFoundError:
-        pass
+        # if the plugins directory does not exist
+        except (FileNotFoundError, NotADirectoryError):
+            continue
 
     return False
 

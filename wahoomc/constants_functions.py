@@ -12,7 +12,9 @@ import struct
 from wahoomc.constants import RESOURCES_DIR
 from wahoomc.constants import TOOLING_WIN_DIR
 from wahoomc.constants import USER_CONFIG_DIR
+from wahoomc.constants import USER_DIR
 from wahoomc.constants import USER_TOOLING_WIN_DIR
+from wahoomc.constants import MAP_WRITER_PLUGIN_FILENAME
 from wahoomc.file_directory_functions import read_json_file_generic
 
 log = logging.getLogger('main-logger')
@@ -24,6 +26,37 @@ class TagWahooXmlNotFoundError(Exception):
 
 class TagsToKeepNotFoundError(Exception):
     """Raised when the specified tags to keep .json file does not exist"""
+
+
+def get_map_writer_plugin_dirs():
+    """
+    directories searched for the Osmosis mapwriter plugin, highest precedence first
+    """
+    plugin_dirs = []
+
+    # explicit override, e.g. set by a package that bundles the plugin
+    if os.environ.get('WAHOOMC_OSMOSIS_PLUGIN_DIR'):
+        plugin_dirs.append(os.environ['WAHOOMC_OSMOSIS_PLUGIN_DIR'])
+
+    plugin_dirs.append('/usr/share/osmosis')
+    plugin_dirs.append(os.path.join(USER_DIR, '.openstreetmap', 'osmosis', 'plugins'))
+
+    return plugin_dirs
+
+
+def get_map_writer_plugin_path():
+    """
+    path of the Osmosis mapwriter plugin to use - first existing candidate wins.
+    If none exists, the lowest precedence (user writable) candidate is returned.
+    """
+    candidates = [os.path.join(plugin_dir, MAP_WRITER_PLUGIN_FILENAME)
+                  for plugin_dir in get_map_writer_plugin_dirs()]
+
+    for candidate in candidates:
+        if os.path.isfile(candidate):
+            return candidate
+
+    return candidates[-1]
 
 
 def translate_tags_to_keep(name_tags=False, sys_platform='', use_repo=False):
