@@ -1,0 +1,16 @@
+# PyPI requirements for wahooMapsCreator
+#
+# snap/snapcraft.yaml installs these through python-packages instead, because
+# python-requirements cannot resolve GDAL against the staged libgdal-dev.
+# Keep both lists in sync.
+
+# GDAL python bindings: must be <= the installed system GDAL version
+GDAL>=3.6,<3.13
+
+geojson>=2.5
+packaging>=21.0
+requests>=2.28
+shapely>=2.0
+
+# Optional, not packaged for snap: osmium-tool, osmosis (system packages) and
+# phyghtmap (source only) for contour lines

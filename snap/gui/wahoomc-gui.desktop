@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=wahooMapsCreator
+Comment=Create up-to-date maps for your Wahoo device
+Exec=wahoomc-gui
+Icon=${SNAP}/meta/gui/wahoomc-gui.svg
+Terminal=false
+Type=Application
+Categories=Utility;Sports;
+StartupNotify=true

@@ -1,0 +1,131 @@
+name: wahoomc
+title: wahooMapsCreator
+summary: Create up-to-date maps for your Wahoo device based on latest OSM data
+description: |
+  Downloads OpenStreetMap data and writes .map files for Wahoo BOLT / ROAM /
+  ELEMNT GPS computers.
+
+  Ships a command line interface and a tkinter based GUI.
+license: MIT
+contact: https://github.com/treee111/wahooMapsCreator/issues
+issues: https://github.com/treee111/wahooMapsCreator/issues
+source-code: https://github.com/treee111/wahooMapsCreator
+website: https://github.com/treee111/wahooMapsCreator
+
+base: core26
+confinement: strict
+grade: devel
+
+platforms:
+  amd64:
+
+adopt-info: wahoomc
+
+environment:
+  PATH: $SNAP/usr/lib/jvm/java-26-openjdk-amd64/bin:$SNAP/usr/bin:$SNAP/bin:$PATH
+  # tkinter (libtk) and armadillo are only reachable through these paths
+  LD_LIBRARY_PATH: $SNAP_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu:$SNAP/usr/lib:$SNAP/usr/lib/x86_64-linux-gnu/blas:$SNAP/usr/lib/x86_64-linux-gnu/lapack
+  GDAL_DATA: $SNAP/usr/share/gdal
+  PROJ_DATA: $SNAP/usr/share/proj
+  WAHOOMC_OSMOSIS_PLUGIN_DIR: $SNAP/usr/share/osmosis
+  HOME: $SNAP_REAL_HOME
+
+# osmosis hardcodes /usr/share/osmosis, /usr/share/java and /etc/osmosis,
+# tkinter looks for its tcl/tk data under /usr/share/tcltk
+layout:
+  /usr/share/osmosis:
+    bind: $SNAP/usr/share/osmosis
+  /usr/share/java:
+    bind: $SNAP/usr/share/java
+  /etc/osmosis:
+    bind: $SNAP/etc/osmosis
+  /usr/share/tcltk:
+    bind: $SNAP/usr/share/tcltk
+
+parts:
+  command-chain:
+    plugin: dump
+    source: snap/command-chain
+    organize:
+      osmosis-home.sh: bin/osmosis-home.sh
+
+  mapsforge-map-writer:
+    plugin: dump
+    source: https://repo1.maven.org/maven2/org/mapsforge/mapsforge-map-writer/0.21.0/mapsforge-map-writer-0.21.0-jar-with-dependencies.jar
+    source-checksum: sha256/8e23b591fd7c61ca2fec5500c3b2406c5aba5cca2148a9e7fb59dabe0b46d687
+    source-type: file
+    organize:
+      mapsforge-map-writer-0.21.0-jar-with-dependencies.jar: usr/share/osmosis/
+
+  wahoomc:
+    plugin: python
+    source: .
+    after: [mapsforge-map-writer]
+    # python-requirements cannot resolve GDAL against the staged libgdal-dev
+    python-packages:
+      - GDAL==3.12.2
+      - geojson
+      - packaging
+      - requests
+      - shapely
+    build-packages:
+      - build-essential
+      - gdal-bin
+      - libgdal-dev
+      - libgeos-dev
+      - libproj-dev
+      - pkg-config
+      - python3-dev
+      - python3-venv
+    stage-packages:
+      # python3.14 is the interpreter of the shipped virtualenv, python3.14-venv
+      # is needed to create it during build
+      - python3.14
+      - python3.14-tk
+      - python3.14-venv
+      - openjdk-26-jre-headless
+      - osmium-tool
+      - osmosis
+      - gdal-bin
+      - xz-utils
+      - zip
+    override-build: |
+      craftctl default
+      craftctl set version="$(sed -n 's/^version *= *//p' setup.cfg)"
+    override-prime: |
+      craftctl default
+      # xz only, the lzma alias is used by the map writer
+      ln -sf xz "$CRAFT_PRIME/usr/bin/lzma"
+      # not needed at runtime
+      rm -rf "$CRAFT_PRIME"/lib/python3.14/site-packages/pip \
+             "$CRAFT_PRIME"/lib/python3.14/site-packages/pip-*.dist-info \
+             "$CRAFT_PRIME"/bin/pip*
+      # osmosis pulls default-jre-headless (openjdk-25), keep the staged JDK 26 only
+      rm -rf "$CRAFT_PRIME/usr/lib/jvm/java-25-openjdk-amd64" \
+             "$CRAFT_PRIME/usr/lib/jvm/java-1.25.0-openjdk-amd64" \
+             "$CRAFT_PRIME/usr/lib/jvm/.java-1.25.0-openjdk-amd64.jinfo"
+      ln -sfn java-26-openjdk-amd64 "$CRAFT_PRIME/usr/lib/jvm/default-java"
+
+apps:
+  # keep the upstream invocation: wahoomc.wahoomc cli -co <country>
+  wahoomc:
+    command: bin/python -m wahoomc
+    command-chain:
+      - bin/osmosis-home.sh
+    plugs:
+      - network
+      - home
+      - removable-media
+
+  wahoomc-gui:
+    command: bin/python -m wahoomc gui
+    desktop: gui/wahoomc-gui.desktop
+    command-chain:
+      - bin/osmosis-home.sh
+    plugs:
+      - network
+      - home
+      - removable-media
+      - opengl
+      - wayland
+      - x11
