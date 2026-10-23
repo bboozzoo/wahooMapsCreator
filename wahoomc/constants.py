@@ -20,6 +20,11 @@ USER_TOOLING_WIN_DIR = os.path.join(USER_DL_DIR, 'tooling_win')
 OSMOSIS_WIN_FILE_PATH = os.path.join(
     USER_TOOLING_WIN_DIR, 'Osmosis', 'bin', 'osmosis.bat')
 
+# Osmosis mapwriter plugin - check for new versions here: https://github.com/mapsforge/mapsforge
+MAP_WRITER_PLUGIN_FILENAME = 'mapsforge-map-writer-0.21.0-jar-with-dependencies.jar'
+MAP_WRITER_PLUGIN_URL = ('https://repo1.maven.org/maven2/org/mapsforge/mapsforge-map-writer/'
+                         f'0.21.0/{MAP_WRITER_PLUGIN_FILENAME}')
+
 # Python Package - wahooMapsCreator directory
 WAHOO_MC_DIR = os.path.dirname(__file__)
 RESOURCES_DIR = os.path.join(WAHOO_MC_DIR, 'resources')

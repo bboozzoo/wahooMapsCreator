@@ -2,13 +2,15 @@
 tests for the downloader file
 """
 import os
+import tempfile
 import unittest
 import mock
 
 
 from wahoomc.constants_functions import translate_tags_to_keep, \
-    get_tag_wahoo_xml_path, TagWahooXmlNotFoundError
-from wahoomc.constants import RESOURCES_DIR
+    get_tag_wahoo_xml_path, TagWahooXmlNotFoundError, \
+    get_map_writer_plugin_dirs, get_map_writer_plugin_path
+from wahoomc.constants import RESOURCES_DIR, USER_DIR, MAP_WRITER_PLUGIN_FILENAME
 
 
 tags_universal_simple = {"TAGS_TO_KEEP_UNIVERSAL": {
@@ -124,6 +126,56 @@ class TestTranslateTags(unittest.TestCase):
         transl_tags = translate_tags_to_keep(
             name_tags=True, sys_platform='Windows', use_repo=True)
         self.assertEqual(names_tags_win, transl_tags)
+
+
+class TestMapWriterPluginSearchPath(unittest.TestCase):
+    """
+    tests for the search path of the Osmosis mapwriter plugin
+    """
+
+    def test_dirs_default_order(self):
+        """
+        the system-wide location takes precedence over the user location
+        """
+        with mock.patch.dict(os.environ, {}, clear=True):
+            plugin_dirs = get_map_writer_plugin_dirs()
+
+        self.assertEqual('/usr/share/osmosis', plugin_dirs[0])
+        self.assertEqual(
+            os.path.join(USER_DIR, '.openstreetmap', 'osmosis', 'plugins'),
+            plugin_dirs[-1])
+
+    def test_dirs_override_first(self):
+        """
+        WAHOOMC_OSMOSIS_PLUGIN_DIR is searched first
+        """
+        with mock.patch.dict(os.environ, {'WAHOOMC_OSMOSIS_PLUGIN_DIR': '/opt/osmosis'}, clear=True):
+            plugin_dirs = get_map_writer_plugin_dirs()
+
+        self.assertEqual('/opt/osmosis', plugin_dirs[0])
+
+    def test_path_prefers_existing_plugin(self):
+        """
+        an existing plugin is returned even if it is not the highest precedence dir
+        """
+        with tempfile.TemporaryDirectory() as plugin_dir:
+            expected = os.path.join(
+                plugin_dir, MAP_WRITER_PLUGIN_FILENAME)
+            with open(expected, 'w', encoding='utf-8'):
+                pass
+
+            with mock.patch.dict(os.environ, {'WAHOOMC_OSMOSIS_PLUGIN_DIR': plugin_dir}, clear=True):
+                self.assertEqual(expected, get_map_writer_plugin_path())
+
+    def test_path_falls_back_to_user_dir(self):
+        """
+        without an existing plugin the user directory is the download target
+        """
+        with mock.patch.dict(os.environ, {'WAHOOMC_OSMOSIS_PLUGIN_DIR': '/nonexistent'}, clear=True):
+            self.assertEqual(
+                os.path.join(USER_DIR, '.openstreetmap', 'osmosis', 'plugins',
+                             MAP_WRITER_PLUGIN_FILENAME),
+                get_map_writer_plugin_path())
 
 
 class TestTagWahooXML(unittest.TestCase):
